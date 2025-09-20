@@ -1,0 +1,10 @@
+{
+  "name": "sample",
+  "canvas_width": 20,
+  "canvas_height": 20,
+  "medium": {
+    "name": "SampleMedium1",
+    "price_per_square": 20.0
+  },
+  "base_price": 2000.0
+}

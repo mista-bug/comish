@@ -1,0 +1,10 @@
+{
+  "name": "VGG Preset",
+  "canvas_width": 70,
+  "canvas_height": 70,
+  "medium": {
+    "name": "SampleMedium1",
+    "price_per_square": 20.0
+  },
+  "base_price": 20000.0
+}

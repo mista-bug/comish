@@ -1,0 +1,10 @@
+{
+  "name": "Sample2",
+  "canvas_width": 30,
+  "canvas_height": 30,
+  "medium": {
+    "name": "asd",
+    "price_per_square": 123.0
+  },
+  "base_price": 3000.0
+}

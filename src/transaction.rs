@@ -1,50 +1,90 @@
-use crate::{cli, preset::Preset};
+use serde::{Deserialize, Serialize};
+
+use crate::{cli::{self, input, select_from_vec_struct, table}, client::{self, Client}, medium::Medium, preset::{self, Preset}};
 use std::{
-    fs::{self, DirEntry, ReadDir, create_dir},
-    path::Path,
+    fs::{self, create_dir, read_dir, write, DirEntry, ReadDir},
+    path::Path, time::{SystemTime, UNIX_EPOCH},
 };
 
-pub fn new() {
-    cli::clr();
-    let preset_path = Path::new("presets");
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Transaction {
+    pub preset:Preset,
+    pub client:Client,
+    pub total_price: f64,
+    pub date:u128,
+}
 
-    if !preset_path.is_dir() {
-        create_dir(preset_path);
+impl Transaction {
+    pub fn new(
+        preset: Preset,
+        client: Client,
+    ) -> Self {
+        
+        let now = SystemTime::now();
+        let sys_epoch = now.duration_since(UNIX_EPOCH).expect("Time error");
+        let ms = sys_epoch.as_millis();
+        let total_price = total_price(&preset);
+
+        Transaction { 
+            preset: preset,
+            client: client,
+            total_price: total_price,
+            date: ms,
+        }
     }
 
-    let path_iter: ReadDir = Path::read_dir(&preset_path).expect("No preset dir found.");
+    pub fn save(&self){
+        let transactions_dir = Path::new("transactions");
+        
+        if ! transactions_dir.is_dir() {
+            let __ = create_dir(transactions_dir);
+        }
 
-    //show existing presets
-    let mut presets_collection: Vec<Vec<String>> = Vec::new();
-    for (n, entry) in path_iter.enumerate() {
-        let entry: DirEntry = entry.unwrap();
-        let entry_path = entry.path();
-        let file_name: &str = entry_path.file_stem().unwrap().to_str().unwrap();
+        let file_count = read_dir(transactions_dir).iter().count();
 
-        let file_contents: String = fs::read_to_string(&entry_path).unwrap();
-        let preset: Preset = serde_json::from_str(&file_contents).unwrap();
-        let entry_n: String = n.to_string();
-
-        presets_collection.push(vec![
-            entry_n,
-            file_name.to_string(),
-            preset.canvas_width.to_string(),
-            preset.canvas_height.to_string(),
-            serde_json::to_string_pretty(&preset.medium).unwrap(),
-            preset.base_price.to_string(),
-        ]);
+        let filename: String = format!("{}.json", file_count);
+        let filename_dir: String = format!("transactions/{}", filename);
+        let stringified_self: String = serde_json::to_string_pretty(&self).unwrap();
+        let _ = write(&filename_dir, stringified_self);
     }
-    let preset_header = vec![
-        String::from("#"),
-        String::from("Preset Name"),
-        String::from("Width"),
-        String::from("Height"),
-        String::from("Medium"),
-        String::from("Base Price"),
-    ];
 
-    cli::table(Some(preset_header), &presets_collection);
+    
 
-    let item: Vec<String> =
-        cli::select_from_vec_by_id(String::from("Select preset : "), &presets_collection).unwrap();
+    pub fn to_vec(&self) -> Vec<String>{
+        vec![
+            self.preset.name.to_string(),
+            self.client.name.to_string(),
+            self.date.to_string(),
+        ]
+    }
+
+}
+
+pub fn dialog() {
+    //select client
+    let clients = Client::get();
+    let mut clients_strings: Vec<Vec<String>> = Vec::new();
+    clients.iter().for_each(|c| clients_strings.push(c.to_vec()));
+    table(Some(client::props()), &clients_strings);
+    let client = select_from_vec_struct(String::from("Client: "), &clients).unwrap();
+
+    //select preset
+    let presets = Preset::get();
+    let mut presets_strings = Vec::new();
+    presets.iter().for_each(|p| presets_strings.push(p.to_vec()));
+    table(Some(preset::props()),&presets_strings);
+    let preset = select_from_vec_struct(String::from("Preset: "), &presets).unwrap();
+
+    Transaction::new(preset.clone(), client.clone()).save();
+}
+
+fn total_price(preset: &Preset) -> f64 {
+    let mut total_price:f64 = 0.00;
+    let base_price:f64 = preset.base_price;
+    let price_per_square:f64 = preset.medium.price_per_square;
+    let w:u32 = preset.canvas_width;
+    let h:u32 = preset.canvas_height;
+    let a:f64 = (w * h) as f64;
+    total_price = a * price_per_square;
+    total_price
 }

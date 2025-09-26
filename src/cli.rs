@@ -76,13 +76,14 @@ pub fn menu(title: Option<String>, options: Vec<MenuOption>) -> () {
     }
 
     for (n,option) in options.iter().enumerate() {
-        println!(" {} ) {}", n.to_string() , option.name);
+        println!(" {} ) {}", (n + 1).to_string() , option.name);
     }
     
-    let input:usize = input("[ Enter ] : ", "Invalid Input.")
+    let mut input:usize = input("[ Enter ] : ", "Invalid Input.")
         .parse()
         .unwrap();
 
+    input = input - 1;
     if let Some(output) = options.get(input){
         (output.action.unwrap())();
     } else {

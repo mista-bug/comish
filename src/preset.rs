@@ -11,7 +11,7 @@ use cli_table::{Cell, CellStruct, Style, TableStruct, print_stdout};
 use serde::{Deserialize, Serialize};
 use serde_json::to_vec;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Preset {
     pub name: String,
     pub canvas_width: u32,
@@ -51,7 +51,7 @@ impl Preset {
         presets
     }
 
-    fn to_vec(&self) -> Vec<String> {
+    pub fn to_vec(&self) -> Vec<String> {
         vec![
             self.name.clone(),
             self.canvas_width.to_string(),
@@ -122,6 +122,7 @@ fn new_preset_menu() -> Preset {
         String::from("Price per square"),
     ];
 
+    //display mediums
     let mediums: Vec<Medium> = medium::get();
     let mut medium_rows: Vec<Vec<String>> = Vec::new();
     for (n, medium) in mediums.iter().enumerate() {
@@ -148,4 +149,14 @@ fn new_preset_menu() -> Preset {
     println!("Preset {} Created.",preset.name);
     sleep(time::Duration::from_secs(2));
     return preset;
+}
+
+pub fn props() -> Vec<String>{
+    vec![
+        String::from("Name"),
+        String::from("Canvas Width"),
+        String::from("Canvas Height"),
+        String::from("Medium"),
+        String::from("Base Price"),
+    ]
 }

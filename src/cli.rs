@@ -53,21 +53,11 @@ pub fn table(header: Option<Vec<String>>, contents: &Vec<Vec<String>>) -> () {
 }
 
 pub fn select_from_vec_struct<T>(message: String, choices: &Vec<T>) -> Option<&T> {
-    let input_id: usize = input("Select : ", "Invalid Choice")
+    let input_id: usize = input(&message, "Invalid Choice")
         .parse()
         .unwrap();
 
     choices.get(input_id)
-}
-
-pub fn select_from_vec_by_id(message: String, choices: &Vec<Vec<String>>) -> Option<Vec<String>> {
-    let id: u32 = input(&message, "Input error.").parse().unwrap();
-    for (n, item) in choices.iter().enumerate() {
-        if n as u32 == id {
-            return Some(item.to_vec());
-        }
-    }
-    None
 }
 
 pub fn menu(title: Option<String>, options: Vec<MenuOption>) -> () {
@@ -90,3 +80,18 @@ pub fn menu(title: Option<String>, options: Vec<MenuOption>) -> () {
         println!("Invalid Choice!");
     }
 }
+
+pub fn yn() -> bool {
+    let input:char = input("Proceed ? [y/n]", "Invalid Input.")
+    .parse()
+    .unwrap();
+
+    if input == 'y' || input == 'Y' {
+        true
+    } else if input == 'n' || input == 'N' {
+        false
+    } else {
+        panic!()
+    }
+}
+
